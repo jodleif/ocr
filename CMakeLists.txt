@@ -8,5 +8,5 @@ set(SRC "ocr_lib.cpp")
 add_library(ocr_lib ${HEADERS} ${SRC})
 add_executable(ocr "main.cpp")
 
-target_link_libraries(ocr_lib tesseract lept)
+target_link_libraries(ocr_lib tesseract lept stdc++fs)
 target_link_libraries(ocr ocr_lib)
