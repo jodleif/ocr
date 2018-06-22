@@ -1,5 +1,5 @@
 #include <iostream>
-#include <experimental/filesystem>
+#include <filesystem>
 #include "ocr_lib.h"
 
 namespace {
@@ -18,8 +18,8 @@ int main(int argc, const char **argv)
     if (argc < 2) return 1;
     {
         std::error_code ec;
-        auto path = std::experimental::filesystem::path(argv[1]);
-        auto exists = std::experimental::filesystem::exists(path, ec);
+        auto path = std::filesystem::path(argv[1]);
+        auto exists = std::filesystem::exists(path, ec);
         if (!exists && !ec) {
             std::cout << "File: " << path << " does not exist\n";
             return 1;
