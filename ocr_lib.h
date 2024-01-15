@@ -1,4 +1,4 @@
-
+#pragma once
 #include <optional>
 #include <filesystem>
 #include <string>
