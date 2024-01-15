@@ -2,27 +2,42 @@
 // Created by jo on 4/15/18.
 //
 #include "ocr_lib.h"
+#include <memory>
+#include <leptonica/allheaders.h>
 
-ocr::ImageOcr::ImageOcr()
+
+ocr::ImageOcr::ImageOcr() : ImageOcr("eng")
 {
-    tess.Init(nullptr, "eng", tesseract::OEM_DEFAULT);
+};
+
+ocr::ImageOcr::ImageOcr(const std::string_view lang)
+{
+    tess.Init(nullptr, lang.data(), tesseract::OEM_DEFAULT);
 }
 
-std::optional<std::string> ocr::ImageOcr::read_image(const char *path)
+auto destroyPix = [](Pix* p) { pixDestroy(&p); };
+
+auto open_image = [](const std::filesystem::path& path) -> std::unique_ptr<Pix, decltype(destroyPix)>
 {
-    if(__builtin_expect(!path, 1)) {
-        return {};
+    if (path.empty())
+    {
+        return nullptr;
     }
-    auto destroyPix = [](Pix* p){ pixDestroy(&p);};
-    auto image = std::unique_ptr<Pix, decltype(destroyPix)>(pixRead(path), destroyPix);
-    if(!image) {
+    return {pixRead(path.c_str()), destroyPix};
+};
+
+std::optional<std::string> ocr::ImageOcr::extract_text_from_image(const std::filesystem::path& path)
+{
+    const auto image = open_image(path);
+    if (!image)
+    {
         return {};
     }
     tess.SetImage(image.get());
     tess.Recognize(nullptr);
 
-    auto text = std::unique_ptr<char>(tess.GetUTF8Text());
-    auto res = std::string(text.get(),strlen(text.get()));
+    const auto text = std::unique_ptr<char>(tess.GetUTF8Text());
+    auto res = std::string(text.get(), std::strlen(text.get()));
 
     tess.Clear();
 
