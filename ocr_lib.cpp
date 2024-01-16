@@ -26,7 +26,7 @@ ocr::ImageOcr::ImageOcr(const std::string_view lang) : tess(std::make_unique<tes
     tess->SetPageSegMode(mode);
 }
 
-auto destroyPix = [](Pix* p) { pixDestroy(&p); };
+auto destroyPix = [](auto* p) { pixDestroy(&p); };
 
 auto open_image = [](const std::filesystem::path& path) -> std::unique_ptr<Pix, decltype(destroyPix)>
 {
@@ -44,6 +44,33 @@ std::optional<std::string> ocr::ImageOcr::extract_text_from_image(const std::fil
     {
         return {};
     }
+    assert(tess->GetPageSegMode() == mode);
+    tess->SetImage(image.get());
+    tess->Recognize(nullptr);
+
+    const auto text = std::unique_ptr<char>(tess->GetUTF8Text());
+    auto res = std::string(text.get(), std::strlen(text.get()));
+
+    tess->Clear();
+
+    return std::make_optional(res);
+}
+
+std::unique_ptr<PIX, decltype(destroyPix)> make_pix_from_bmp(const std::vector<std::uint8_t>& image)
+{
+    const l_uint8* data = const_cast<l_uint8*>(image.data());
+    auto* pixy = pixReadMemBmp(data, image.size());
+    return {pixy, destroyPix};
+}
+
+std::optional<std::string> ocr::ImageOcr::extract_text_from_bmp(const std::vector<std::uint8_t>& bmp_data)
+{
+    auto image = make_pix_from_bmp(bmp_data);
+    if (!image)
+    {
+        return {};
+    }
+
     assert(tess->GetPageSegMode() == mode);
     tess->SetImage(image.get());
     tess->Recognize(nullptr);
