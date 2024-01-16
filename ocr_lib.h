@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace tesseract
 {
