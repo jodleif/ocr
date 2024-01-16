@@ -2,6 +2,8 @@
 // Created by jo on 4/15/18.
 //
 #include "ocr_lib.h"
+
+#include <cassert>
 #include <memory>
 #include <leptonica/allheaders.h>
 #include <tesseract/baseapi.h>
@@ -10,11 +12,18 @@ ocr::ImageOcr::ImageOcr() : ImageOcr("eng")
 {
 }
 
-ocr::ImageOcr::~ImageOcr() = default;
+ocr::ImageOcr::~ImageOcr()
+{
+    tess->End();
+}
+
+
+const tesseract::PageSegMode mode = tesseract::PSM_AUTO_OSD;
 
 ocr::ImageOcr::ImageOcr(const std::string_view lang) : tess(std::make_unique<tesseract::TessBaseAPI>())
 {
     tess->Init(nullptr, lang.data(), tesseract::OEM_DEFAULT);
+    tess->SetPageSegMode(mode);
 }
 
 auto destroyPix = [](Pix* p) { pixDestroy(&p); };
@@ -35,6 +44,7 @@ std::optional<std::string> ocr::ImageOcr::extract_text_from_image(const std::fil
     {
         return {};
     }
+    assert(tess->GetPageSegMode() == mode);
     tess->SetImage(image.get());
     tess->Recognize(nullptr);
 
