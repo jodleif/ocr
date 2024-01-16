@@ -22,7 +22,7 @@ link_directories( ${LEPTONICA_LIBRARY_DIRS} )
 
 set(HEADERS "ocr_lib.h")
 set(SRC "ocr_lib.cpp")
-add_library(ocr_lib STATIC ${HEADERS} ${SRC})
+add_library(ocr_lib SHARED ${HEADERS} ${SRC})
 add_executable(ocr "main.cpp")
 target_link_libraries(ocr_lib ${TESSERACT_LIBRARIES} ${LEPTONICA_LIBRARIES})
 target_link_libraries(ocr ocr_lib)

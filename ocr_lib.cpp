@@ -4,15 +4,17 @@
 #include "ocr_lib.h"
 #include <memory>
 #include <leptonica/allheaders.h>
-
+#include <tesseract/baseapi.h>
 
 ocr::ImageOcr::ImageOcr() : ImageOcr("eng")
 {
-};
+}
 
-ocr::ImageOcr::ImageOcr(const std::string_view lang)
+ocr::ImageOcr::~ImageOcr() = default;
+
+ocr::ImageOcr::ImageOcr(const std::string_view lang) : tess(std::make_unique<tesseract::TessBaseAPI>())
 {
-    tess.Init(nullptr, lang.data(), tesseract::OEM_DEFAULT);
+    tess->Init(nullptr, lang.data(), tesseract::OEM_DEFAULT);
 }
 
 auto destroyPix = [](Pix* p) { pixDestroy(&p); };
@@ -33,13 +35,13 @@ std::optional<std::string> ocr::ImageOcr::extract_text_from_image(const std::fil
     {
         return {};
     }
-    tess.SetImage(image.get());
-    tess.Recognize(nullptr);
+    tess->SetImage(image.get());
+    tess->Recognize(nullptr);
 
-    const auto text = std::unique_ptr<char>(tess.GetUTF8Text());
+    const auto text = std::unique_ptr<char>(tess->GetUTF8Text());
     auto res = std::string(text.get(), std::strlen(text.get()));
 
-    tess.Clear();
+    tess->Clear();
 
     return std::make_optional(res);
 }

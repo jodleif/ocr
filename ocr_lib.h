@@ -2,13 +2,19 @@
 #include <optional>
 #include <filesystem>
 #include <string>
-#include <tesseract/baseapi.h>
+#include <memory>
+namespace tesseract
+{
+    class TessBaseAPI;
+}
 
 namespace ocr {
     class ImageOcr {
-        tesseract::TessBaseAPI tess;
+        std::unique_ptr<tesseract::TessBaseAPI> tess;
     public:
         ImageOcr();
+
+        ~ImageOcr();
         explicit ImageOcr(const std::string_view lang);
         std::optional<std::string> extract_text_from_image(const std::filesystem::path& path);
     };
